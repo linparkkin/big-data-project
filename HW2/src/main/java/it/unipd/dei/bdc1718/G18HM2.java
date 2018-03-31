@@ -83,6 +83,8 @@ public class G18HM2 {
     }
 
 
+//Defining the comparator class for the .top method
+
     public static class LongTupleComparator implements Serializable, Comparator<Tuple2<Long,String>> {
 
         @Override

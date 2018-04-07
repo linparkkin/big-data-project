@@ -3,7 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="25897665-2a08-4a68-9bc7-939cd44c2e1b" name="Default" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/it/unipd/dei/bdc1718/G18HM2.java" afterPath="$PROJECT_DIR$/src/main/java/it/unipd/dei/bdc1718/G18HM2.java" />
     </list>
     <ignored path="$PROJECT_DIR$/.gradle/" />
     <ignored path="$PROJECT_DIR$/build/" />
@@ -656,7 +655,14 @@
       <option name="project" value="LOCAL" />
       <updated>1523098628615</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="Second commit">
+      <created>1523098862661</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1523098862661</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="TodoView">

@@ -160,12 +160,12 @@ public class G18HM2 {
 
     /***********************************************************
      *
-     * IMPROVED WORD COUNT 1
+     * IMPROVED WORD COUNT 1 WITH reduceByKey METHOD
      *
      ************************************************************/
 
     long start4 = System.currentTimeMillis();
-    JavaPairRDD<String, Long> wordcounts4 = docs
+    JavaPairRDD<String, Long> wordcounts3 = docs
             .flatMapToPair((document) -> {                                 // <-- Map phase
                 String[] tokens = document.split(" ");
                 ArrayList<Tuple2<String, Long>> pairs = new ArrayList<>();
@@ -204,7 +204,7 @@ public class G18HM2 {
     System.out.println("Top "+n+" words with improved word count 2 algorithm:");
     System.out.println(redwordcount2.top(n, new LongTupleComparator()));
     System.out.println("Top "+n+" words with improved word count 1 algorithm and reduceByKey:");
-    System.out.println(redwordcount2.top(n, new LongTupleComparator()));
+    System.out.println(wordcounts3.top(n, new LongTupleComparator()));
     System.out.println("Elapsed time straightforward algorithm: " + (end1 - start1) + " ms");
     System.out.println("Elapsed time improved word count 1 algorithm: " + (end2 - start2) + " ms");
     System.out.println("Elapsed time improved word count 2 algorithm: " + (end3 - start3) + " ms");

@@ -32,7 +32,7 @@ public class G18HM2 {
       .setAppName("PreliminariesTwo");
     JavaSparkContext sc = new JavaSparkContext(conf);
 
-    // Create a parallel collection
+    // Import the text-sample.txt document
     JavaRDD<String> docs = sc.textFile(args[0]).cache().repartition(16);
     docs.count();
 
@@ -42,9 +42,10 @@ public class G18HM2 {
     *
     ************************************************************/
 
+    //Start
     long start1 = System.currentTimeMillis();
     JavaPairRDD<String, Long> wordcounts = docs
-        .flatMapToPair((document) -> {             // <-- Map phase
+        .flatMapToPair((document) -> {                                              // <-- Map phase
             String[] tokens = document.split(" ");
             ArrayList<Tuple2<String, Long>> pairs = new ArrayList<>();
             for (String token : tokens) {
@@ -52,7 +53,7 @@ public class G18HM2 {
             }
             return pairs.iterator();
         })
-        .groupByKey()                       // <-- Reduce phase
+        .groupByKey()                                                               // <-- Reduce phase
         .mapValues((it) -> {
             long sum = 0;
             for (long c : it) {
@@ -60,6 +61,8 @@ public class G18HM2 {
             }
             return sum;
         });
+
+    //End
     long end1 = System.currentTimeMillis();
 
     //Number of words
@@ -73,15 +76,24 @@ public class G18HM2 {
      *
      ************************************************************/
 
+    //Start
     long start2 = System.currentTimeMillis();
     JavaPairRDD<String, Long> wordcounts1 = docs
-            .flatMapToPair((document) -> {                                 // <-- Map phase
+            .flatMapToPair((document) -> {                                          // <-- Map phase
                 String[] tokens = document.split(" ");
                 ArrayList<Tuple2<String, Long>> pairs = new ArrayList<>();
+
+                //Defining an empty ArrayList of String. This list will be filled step by step with the counted words
+                //in order to avoid that a word is counted multiple times. The check is done with the method
+                //.alreadyChecked() .
                 ArrayList<String> checkAL=new ArrayList<>();
                 long count;
                 for (String token : tokens) {
+
+                    //Check if the word has not been already counted
                     if (alreadyChecked((token),checkAL)==false) {
+
+                        // Count the number of occurrences of a given word in the document
                         count = numberOfOccurences(token, tokens);
                         pairs.add(new Tuple2<>(token, count));
                         checkAL.add(token);
@@ -89,7 +101,7 @@ public class G18HM2 {
                 }
                 return pairs.iterator();
             })
-            .groupByKey()                       // <-- Reduce phase
+            .groupByKey()                                                           // <-- Reduce phase
             .mapValues((it) -> {
                 long sum = 0;
                 for (long c : it) {
@@ -98,7 +110,8 @@ public class G18HM2 {
                 return sum;
             });
 
-        long end2 = System.currentTimeMillis();
+    //End
+    long end2 = System.currentTimeMillis();
 
 
     /***********************************************************
@@ -107,18 +120,34 @@ public class G18HM2 {
      *
      ************************************************************/
 
-    //Round 1
+    /***Round 1***/
     long start3 = System.currentTimeMillis();
+
+    //Compute the square root of the overall number of words.
     long sqrtN= (long) Math.sqrt(wordsNumber);
+
+    //In order to implement the "improved word count 2" algorithm it is necessary to define an object that better represent
+    //the pair (x,(w,c)). This is done creating a JavaPairRDD<Long, Tuple2<String, Long>> Object.
     JavaPairRDD<Long, Tuple2<String, Long>> wordcounts2 = docs
-            .flatMapToPair((document) -> {                                 // <-- Map phase
+            .flatMapToPair((document) -> {                                              // <-- Map phase
                 String[] tokens = document.split(" ");
-               ArrayList<Tuple2<Long,Tuple2<String, Long>>> pairs = new ArrayList<>();
+                ArrayList<Tuple2<Long,Tuple2<String, Long>>> pairs = new ArrayList<>();
+
+                //Defining an empty ArrayList of String. This list will be filled step by step with the counted words
+                //in order to avoid that a word is counted multiple times. The check is done with the method
+                //.alreadyChecked() .
                 ArrayList<String> checkAL=new ArrayList<>();
                 long count;
                 for (String token : tokens) {
+
+                    //Check if the word has not been already counted
                     if (alreadyChecked(token,checkAL)==false) {
+
+                        // Count the number of occurrences of a given word in the document
                         count = numberOfOccurences(token, tokens);
+
+                        // Assigning the number x, which is a random number between [0, sqrt(N)), as the key of the
+                        // JavaPairRDD<Long, Tuple2<String, Long>> object.
                         long x = (long) (Math.random()*sqrtN) ;
                         pairs.add(new Tuple2<>(x, new Tuple2<>(token,count)));
                         checkAL.add(token);
@@ -127,14 +156,22 @@ public class G18HM2 {
                 return pairs.iterator();
             });
 
+    //Defining a new object JavaPairRDD<String, Long> that will represents the pairs (w,c(x,w)), where c(x,w) is the number
+    //of occurrences of a word given a key x.
     JavaPairRDD<String, Long> redwordcount2= wordcounts2
-            .groupByKey()                       // <-- Reduce phase
+            .groupByKey()                                                               // <-- Reduce phase
             .flatMapToPair((it) -> {
                 long count;
-                ArrayList<String> checkAL=new ArrayList<>();
                 ArrayList<Tuple2<String,Long>> newPairs= new ArrayList<>();
+
+                //Defining an empty ArrayList of String. This list will be filled step by step with the counted words
+                //in order to avoid that a word is counted multiple times. The check is done with the method
+                //.alreadyChecked() .
+                ArrayList<String> checkAL=new ArrayList<>();
                 for (Tuple2<String, Long> pair : it._2) {
                     if (alreadyChecked(pair._1,checkAL)==false){
+
+                        // Count the number of occurrences of a given word according to its key.
                         count=numberOfOccurencesOn2Tuple(pair , it._2);
                         newPairs.add(new Tuple2<>(pair._1,count));
                         checkAL.add(pair._1);
@@ -143,9 +180,12 @@ public class G18HM2 {
                 return newPairs.iterator();
             });
 
-        //Round 2
-    //The map phase apply the identity function, so nothing changes                    <-- Map phase
-    redwordcount2= redwordcount2.groupByKey()                                       // <-- Reduce phase
+    /***Round 2***/
+
+    //The map phase apply the identity function, so nothing changes                        <-- Map phase
+    redwordcount2= redwordcount2.groupByKey()                                           // <-- Reduce phase
+
+            //Count the number of occurrences of a word summing its partial-occurrences
             .mapValues((it) -> {
                 long sum = 0;
                 for (long c : it) {
@@ -166,12 +206,18 @@ public class G18HM2 {
 
     long start4 = System.currentTimeMillis();
     JavaPairRDD<String, Long> wordcounts3 = docs
-            .flatMapToPair((document) -> {                                 // <-- Map phase
+            .flatMapToPair((document) -> {                                               // <-- Map phase
                 String[] tokens = document.split(" ");
                 ArrayList<Tuple2<String, Long>> pairs = new ArrayList<>();
+
+                //Defining an empty ArrayList of String. This list will be filled step by step with the counted words
+                //in order to avoid that a word is counted multiple times. The check is done with the method
+                //.alreadyChecked() .
                 ArrayList<String> checkAL=new ArrayList<>();
                 long count;
                 for (String token : tokens) {
+
+                    //Check that the word has not been already counted
                     if (alreadyChecked((token),checkAL)==false) {
                         count = numberOfOccurences(token, tokens);
                         pairs.add(new Tuple2<>(token, count));
@@ -180,14 +226,16 @@ public class G18HM2 {
                 }
                 return pairs.iterator();
             })
-            .reduceByKey((x,y) -> x+y);
+
+            //Applying the reduce function summing the values for each key
+            .reduceByKey((x,y) -> x+y);                                                  // <-- Reduce phase
 
     long end4 = System.currentTimeMillis();
 
 
     /***********************************************************
      *
-     * PRINTINGS
+     * PRINTS
      *
      ************************************************************/
 

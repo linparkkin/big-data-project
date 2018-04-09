@@ -1,6 +1,7 @@
- # ignore this objects
- **/grandlew.bat
- **/grandlew
- **/grandle
- **/build.gradle
- **/*.iml
+# ignore this objects
+**/grandlew.bat
+**/grandlew
+**/grandle
+**/build.gradle
+**/*.iml
+**/out

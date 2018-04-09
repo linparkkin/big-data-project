@@ -4,4 +4,4 @@
 **/grandle
 **/build.gradle
 **/*.iml
-**/out
+**/**/out

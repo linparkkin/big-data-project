@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-public class G18HM2 {
+public class G18HM2Davide {
 
   public static void main(String[] args) throws FileNotFoundException {
     if (args.length == 0) {
@@ -35,7 +35,7 @@ public class G18HM2 {
             .setAppName("Second homework");
     JavaSparkContext sc = new JavaSparkContext(conf);
 
-    JavaRDD<String> docs = sc.textFile(args[0]).cache();
+    JavaRDD<String> docs = sc.textFile(args[0]).cache().repartition(16);
     long nItems = docs.count();
 
     /******************************************
@@ -46,22 +46,22 @@ public class G18HM2 {
 
     long startDef = System.currentTimeMillis();
     JavaPairRDD<String, Long> wordcountN = docs
-            .flatMapToPair((document) -> {             // <-- Map phase
-              String[] tokens = document.split(" ");
-              ArrayList<Tuple2<String, Long>> pairs = new ArrayList<>();
-              for (String token : tokens) {
-                pairs.add(new Tuple2<>(token, 1L));
-              }
-              return pairs.iterator();
-            })
-            .groupByKey()                       // <-- Reduce phase
-            .mapValues((it) -> {
-              long sum = 0;
-              for (long c : it) {
-                sum += c;
-              }
-              return sum;
-            });
+        .flatMapToPair((document) -> {             // <-- Map phase
+          String[] tokens = document.split(" ");
+          ArrayList<Tuple2<String, Long>> pairs = new ArrayList<>();
+          for (String token : tokens) {
+            pairs.add(new Tuple2<>(token, 1L));
+          }
+          return pairs.iterator();
+        })
+        .groupByKey()                       // <-- Reduce phase
+        .mapValues((it) -> {
+          long sum = 0;
+          for (long c : it) {
+            sum += c;
+          }
+          return sum;
+        });
 
     long endDef = System.currentTimeMillis();
     /******************************************
@@ -187,13 +187,20 @@ public class G18HM2 {
     int n= keyboard.nextInt();
 
     List<Tuple2<String, Long>> occurrencesWC1= wordCountWC1.top(n, new WordCountComparator());
-    List<Tuple2<String, Long>> occurrencesWC2= wordCountWC1.top(n, new WordCountComparator());
-    List<Tuple2<String, Long>> occurrencesWCR= wordCountWC1.top(n, new WordCountComparator());
+    List<Tuple2<String, Long>> occurrencesWC2= wordCountWC2.top(n, new WordCountComparator());
+    List<Tuple2<String, Long>> occurrencesWCR= wordCountWCR.top(n, new WordCountComparator());
 
     System.out.println("Improved WordCount 1, most frequent words: " + occurrencesWC1);
     System.out.println("Improved WordCount 2, most frequent words:  " + occurrencesWC2);
     System.out.println("Improved WordCount with reduceByKey, most frequent words: " + occurrencesWCR);
 
+    System.out.println("Press Enter to terminate: ");
+
+    try {
+        System.in.read();
+    } catch (Exception e) {
+
+    }
 
 
 

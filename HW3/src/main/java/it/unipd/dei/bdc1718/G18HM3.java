@@ -17,33 +17,51 @@ import java.util.*;
 public class G18HM3 {
 
   public static void main(String[] args) throws IOException {
-      String[] files = {"vecs-50-10000.txt","vecs-50-50000.txt","vecs-50-100000.txt","vecs-50-500000.txt"};
-      Boolean check = false;
-      Scanner keyboard = new Scanner(System.in);
-      int n = -1;
+//      String[] files = {"vecs-50-10000.txt","vecs-50-50000.txt","vecs-50-100000.txt","vecs-50-500000.txt"};
+//      Boolean check = false;
+//      Scanner keyboard = new Scanner(System.in);
+//      int n = -1;
+//
+//      while(check==false)
+//      {
+//          System.out.println("Choose the dataset: \n [0] 9960 points \n [1] 50047 points \n [2] 99670 points \n [3] 499950 points");
+//          n= keyboard.nextInt();
+//          if(n<4 && n>-1)
+//              check=true;
+//          else
+//              System.out.println("The typed number is incorrect");
+//      }
 
-      while(check==false)
-      {
-          System.out.println("Choose the dataset: \n [0] 9960 points \n [1] 50047 points \n [2] 99670 points \n [3] 499950 points");
-          n= keyboard.nextInt();
-          if(n<4 && n>-1)
-              check=true;
-          else
-              System.out.println("The typed number is incorrect");
+      String inputFile;
+      int k;
+      int k1;
+      if (args.length == 3) {
+          inputFile = args[0];
+          k = Integer.parseInt(args[1]);
+          k1 = Integer.parseInt(args[2]);
+
+          if (k >= k1) {
+              System.out.println("Parameters not valid: must be k < k1!");
+              throw new IllegalArgumentException();
+          }
+
+      } else {
+          System.out.println("Wrong number of parameters: you have to specify inputFile k k1");
+          throw new IllegalArgumentException();
+
       }
-
-      ArrayList<Vector> P = InputOutput.readVectorsSeq(files[n]);
+      ArrayList<Vector> P = InputOutput.readVectorsSeq(inputFile);
       
 
-      System.out.println("Choose the number of k centers");
-      int k= keyboard.nextInt();
-      System.out.println("Choose the number of k1 centers");
-      int k1= keyboard.nextInt();
+//      System.out.println("Choose the number of k centers");
+//      int k= keyboard.nextInt();
+//      System.out.println("Choose the number of k1 centers");
+//      int k1= keyboard.nextInt();
 
       //run kcenter and print the running time
       System.out.println("**************** Running kcenter ****************");
       long startKCenters = System.currentTimeMillis();
-
+      ArrayList<Vector> kcenters = kcenter(P, k);
       long endKCenters = System.currentTimeMillis();
       System.out.println("Time elapsed for kcenters: " + (endKCenters - startKCenters));
 
@@ -62,7 +80,7 @@ public class G18HM3 {
       double distance = kmeansObj(P, centers);
       long endKMeansObj = System.currentTimeMillis();
 
-      System.out.println("Mean distance of P: " +  distance);
+      System.out.println("Average squared distance of P: " +  distance);
       System.out.println("Time elapsed for kmeansPP: " + (endKMeansPP - startKMeansPP));
       System.out.println("Time elapsed for kmeansObj: " + (endKMeansObj - startKMeansObj));
 
@@ -71,9 +89,12 @@ public class G18HM3 {
       System.out.println("**************** Test coreset performances ****************");
 
       ArrayList<Vector> coreset = kcenter(P, k1);
-      ArrayList<Vector> CoresetCenters = kmeansPP(P, weights, k);
+
+      //TODO compute weigths
+      ArrayList<Vector> CoresetCenters = kmeansPP(coreset, weights, k);
+
       double distanceCoreset = kmeansObj(P, CoresetCenters);
-      System.out.println("Mean distance of P using coreset: " +  distanceCoreset);
+      System.out.println("Average squared distance of P using coreset: " +  distanceCoreset);
 
 
 
@@ -149,9 +170,9 @@ public class G18HM3 {
         ArrayList<Vector> centers = new ArrayList<>(k);
 
         ArrayList<Double> dFromClosestCenter = new ArrayList<>(Collections.nCopies(P.size(), Double.MAX_VALUE));
-        ArrayList<Integer> closestCenter = new ArrayList<>(P.size());
+        ArrayList<Integer> closestCenter = new ArrayList<>(Collections.nCopies(P.size(), 0));
 
-        ArrayList<Double> pointsProb = new ArrayList<>(P.size());
+        ArrayList<Double> pointsProb = new ArrayList<>(Collections.nCopies(P.size(), (double) 0));
 
 
         //get a random integer in [0, |P|)
@@ -213,12 +234,12 @@ compute the verage squared distance of a point of P from its closest center
         double totDist = 0;
         for (int iPoint = 0; iPoint < P.size(); iPoint++) {
 
-            double pointDistance = Double.MAX_VALUE;
+            double pointDistance = Vectors.sqdist(P.get(iPoint), C.get(0));
 
 //      find the closest center for the point
-            for (int iCenter = 0; iCenter < C.size(); iCenter++) {
+            for (int iCenter = 1; iCenter < C.size(); iCenter++) {
 
-                double distCurrCenter = Vectors.sqdist(P.get(iCenter), P.get(iPoint));
+                double distCurrCenter = Vectors.sqdist(C.get(iCenter), P.get(iPoint));
                 if (distCurrCenter < pointDistance) {
                     pointDistance = distCurrCenter;
                 }

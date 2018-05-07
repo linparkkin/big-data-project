@@ -17,20 +17,6 @@ import java.util.*;
 public class G18HM3 {
 
   public static void main(String[] args) throws IOException {
-//      String[] files = {"vecs-50-10000.txt","vecs-50-50000.txt","vecs-50-100000.txt","vecs-50-500000.txt"};
-//      Boolean check = false;
-//      Scanner keyboard = new Scanner(System.in);
-//      int n = -1;
-//
-//      while(check==false)
-//      {
-//          System.out.println("Choose the dataset: \n [0] 9960 points \n [1] 50047 points \n [2] 99670 points \n [3] 499950 points");
-//          n= keyboard.nextInt();
-//          if(n<4 && n>-1)
-//              check=true;
-//          else
-//              System.out.println("The typed number is incorrect");
-//      }
 
       String inputFile;
       int k;
@@ -51,24 +37,18 @@ public class G18HM3 {
 
       }
       ArrayList<Vector> P = InputOutput.readVectorsSeq(inputFile);
-      
-
-//      System.out.println("Choose the number of k centers");
-//      int k= keyboard.nextInt();
-//      System.out.println("Choose the number of k1 centers");
-//      int k1= keyboard.nextInt();
 
       //run kcenter and print the running time
       System.out.println("**************** Running kcenter ****************");
       long startKCenters = System.currentTimeMillis();
+      //kcenter is slower than kcenterPP probably for cache missing
       ArrayList<Vector> kcenters = kcenter(P, k);
       long endKCenters = System.currentTimeMillis();
-      System.out.println("Time elapsed for kcenters: " + (endKCenters - startKCenters));
+      System.out.println("Time elapsed for kcenters: " + (endKCenters - startKCenters) + " ms");
 
 
 
       //run kmeansPP
-
       ArrayList<Long> weights = new ArrayList<>(Collections.nCopies(P.size(), 1L));
       System.out.println("**************** Running kmeansPP ****************");
 
@@ -81,8 +61,8 @@ public class G18HM3 {
       long endKMeansObj = System.currentTimeMillis();
 
       System.out.println("Average squared distance of P: " +  distance);
-      System.out.println("Time elapsed for kmeansPP: " + (endKMeansPP - startKMeansPP));
-      System.out.println("Time elapsed for kmeansObj: " + (endKMeansObj - startKMeansObj));
+      System.out.println("Time elapsed for kmeansPP: " + (endKMeansPP - startKMeansPP) + " ms");
+      System.out.println("Time elapsed for kmeansObj: " + (endKMeansObj - startKMeansObj) + " ms");
 
 
       //test the coreset
@@ -90,73 +70,62 @@ public class G18HM3 {
 
       ArrayList<Vector> coreset = kcenter(P, k1);
 
-      //TODO compute weigths
-      ArrayList<Vector> CoresetCenters = kmeansPP(coreset, weights, k);
+      ArrayList<Vector> coresetCentersW1 = kmeansPP(coreset, weights, k);
 
-      double distanceCoreset = kmeansObj(P, CoresetCenters);
-      System.out.println("Average squared distance of P using coreset: " +  distanceCoreset);
+      ArrayList<Long> wx = computeCoresetWeights(P, coreset);
+      ArrayList<Vector> coresetCentersWX = kmeansPP(coreset, wx, k);
 
+      double distanceCoresetW1 = kmeansObj(P, coresetCentersW1);
+      System.out.println("Average squared distance of P using coreset (weights equal to 1): " +  distanceCoresetW1);
 
-
-//      long startkc = System.currentTimeMillis();
-//      ArrayList<Vector> C = kcenter(P,k);
-//      long endkc = System.currentTimeMillis();
-//
-//      System.out.println("********* CENTERS ********");
-//
-//      for(Vector vector : C)
-//          System.out.println(vector);
-//
-//      System.out.println("\n********* TIME PERFORMANCES ********");
-//      System.out.println("Elapsed time with kcenter: " + (endkc - startkc) + " ms");
-//
-//      System.out.println("Press Enter to terminate: ");
-//
-//      try {
-//          System.in.read();
-//      } catch (Exception e) {
-//
-//      }
+      double distanceCoresetWX = kmeansObj(P, coresetCentersWX);
+      System.out.println("Average squared distance of P using coreset (weights equal to the number of points of the corresponding cluster): " +  distanceCoresetWX);
 
 
   }
 
     private static ArrayList<Vector> kcenter(ArrayList<Vector> P, int k){
 
-    ArrayList <Vector> centers= new ArrayList<>();
-    //Assign the first element of the ArrayList as first arbitrary center c1 and remove it from the list of points;
-    centers.add(P.get(0));
-    P.remove(0);
-    //Define an ArrayList of double which will contains the minimum distance of a point from the set S (set of centers)
-    ArrayList< Double > distances = new ArrayList<>(P.size());
-    //Start the Farthest-first traversal algorithm
-    for (int i = 0; i < k-1; i++) {
-      //Define a neutral maximum distance from the set S and a neutral index
-      int indexMaxPoint = -1;
-      double max = -1;
-      //Iterate among all the points of the dataset
-      for (int j = 0; j < P.size(); j++) {
-        //Compute the distance between the point j and the center i
-        double distance= Vectors.sqdist(centers.get(i), P.get(j));
-        //If it's the first iteration (i=0), add the distance to the ArrayList distances,
-        //If it's not the first iteration(i!=0) and the distance is lower than the one on the ArrayList, update it
-          if(i==0)
-            distances.add(j,Vectors.sqdist(centers.get(i), P.get(j)));
-          if(i!=0 && distances.get(j) > distance)
-            distances.set(j,Vectors.sqdist(centers.get(i), P.get(j)));
-          //If the distance is greater than the maximum distance from the set S, set this distance as the new max
-          if(distances.get(j)>max){
-            max= distances.get(j);
-            indexMaxPoint=j;
+        ArrayList <Vector> centers= new ArrayList<>();
+        //Assign the first element of the ArrayList as first arbitrary center c1 and remove it from the list of points;
+        centers.add(P.get(0));
+        P.remove(0);
+        //Define an ArrayList of double which will contains the minimum distance of a point from the set S (set of centers)
+        ArrayList< Double > distances = new ArrayList<>(Collections.nCopies(P.size(), Double.MAX_VALUE));
+        //Start the Farthest-first traversal algorithm
+        for (int i = 0; i < k-1; i++) {
+          //Define a neutral maximum distance from the set S and a neutral index
+          int indexMaxPoint = -1;
+          double max = -1;
+          //Iterate among all the points of the dataset
+          for (int j = 0; j < P.size(); j++) {
+            //Compute the distance between the point j and the center i
+            double distance= Vectors.sqdist(centers.get(i), P.get(j));
+
+            //If the distance is lower than the one on the ArrayList, update it
+              if(distances.get(j) > distance)
+                distances.set(j,Vectors.sqdist(centers.get(i), P.get(j)));
+              //If the distance is greater than the maximum distance from the set S, set this distance as the new max
+              if(distances.get(j)>max){
+                max= distances.get(j);
+                indexMaxPoint=j;
+              }
           }
-      }
-      //Add the point with the maximum distance to the ArrayList centers, and remove it from the distances ArrayList and from the set of point P
-      centers.add(P.get(indexMaxPoint));
-      distances.remove(indexMaxPoint);
-      P.remove(indexMaxPoint);
-      }
-      //Return the set of centers
-      return centers;
+          //Add the point with the maximum distance to the ArrayList centers, and remove it from the distances ArrayList and from the set of point P
+          centers.add(P.get(indexMaxPoint));
+          distances.remove(indexMaxPoint);
+          P.remove(indexMaxPoint);
+        }
+
+
+        //add to the list of points the selected centers
+        for(Vector c : centers) {
+            P.add(c);
+        }
+
+        //Return the set of centers
+        return centers;
+
     }
 
 
@@ -169,16 +138,28 @@ public class G18HM3 {
         //array of selected centers
         ArrayList<Vector> centers = new ArrayList<>(k);
 
+        //array of distances of points from their closest center
         ArrayList<Double> dFromClosestCenter = new ArrayList<>(Collections.nCopies(P.size(), Double.MAX_VALUE));
+
+        //array of closest centers
         ArrayList<Integer> closestCenter = new ArrayList<>(Collections.nCopies(P.size(), 0));
 
+        //array of points probability
         ArrayList<Double> pointsProb = new ArrayList<>(Collections.nCopies(P.size(), (double) 0));
 
 
         //get a random integer in [0, |P|)
         int firstCenterIndex = (int) Math.floor(Math.random()* P.size());
 
+        //add the chosen point to the list of centers
         centers.add(P.get(firstCenterIndex));
+
+        //remove the point from P
+        P.remove(firstCenterIndex);
+        dFromClosestCenter.remove(firstCenterIndex);
+        closestCenter.remove(firstCenterIndex);
+        pointsProb.remove(firstCenterIndex);
+
 
         for(int iCenter = 0; iCenter < k; iCenter++){
 
@@ -186,13 +167,15 @@ public class G18HM3 {
             for(int iPoint = 0; iPoint < P.size(); iPoint++){
 
 //        compute the distance between the point and the currentCenter
-                double distance = Vectors.sqdist(P.get(iCenter), P.get(iPoint));
+                double distance = Vectors.sqdist(centers.get(iCenter), P.get(iPoint));
 
 //        if the current center is closer, set it as the closest center for the point
                 if (distance < dFromClosestCenter.get(iPoint)){
                     dFromClosestCenter.set(iPoint, distance);
                     closestCenter.set(iPoint, iCenter);
-                    double wpdp = WP.get(iPoint) * dFromClosestCenter.get(iPoint);
+
+                    //compute the probability for the point
+                    double wpdp = WP.get(iPoint) * distance;
                     pointsProb.set(iPoint, wpdp);
                 }
 
@@ -200,26 +183,43 @@ public class G18HM3 {
 
             }
 
+            //draw a random number in [0, 1)
             double rnd = Math.random();
 
             double cumProb = 0;
             boolean centerFound = false;
 
-            //centers have 0 probability of been selected (distance 0),
-            // supposing k = o(N) we can avoid the check for already selected centers
+            //compute the cumulative probability and check if the point is drawn (the random number belongs to
+            // the probability interval of the point)
             for (int iPoint = 0; iPoint < P.size() && !centerFound; iPoint++) {
+
+                //normalize the probability to 1
                 double pointProb = pointsProb.get(iPoint)/ totalwpdp;
 
                 cumProb += pointProb;
 
                 if (rnd <= cumProb) {
                     centerFound = true;
-                    centers.add(P.get(iCenter));
+                    //add the chosen point to the list of centers
+                    centers.add(P.get(iPoint));
+
+                    //remove the point from P
+                    P.remove(iPoint);
+                    dFromClosestCenter.remove(iPoint);
+                    closestCenter.remove(iPoint);
+                    pointsProb.remove(iPoint);
+
                 }
             }
 
         }
 
+        //add to the list of points the selected centers
+        for(Vector c : centers) {
+            P.add(c);
+        }
+
+        //Return the set of centers
         return centers;
 
     }
@@ -255,5 +255,30 @@ compute the verage squared distance of a point of P from its closest center
 
     }
 
+    public static ArrayList<Long> computeCoresetWeights(ArrayList<Vector> P, ArrayList<Vector> C) {
+
+        ArrayList<Long> weights = new ArrayList<>(Collections.nCopies(C.size(), 0L));
+
+        for (int iPoint = 0; iPoint < P.size(); iPoint++) {
+
+            double pointDistance = Vectors.sqdist(P.get(iPoint), C.get(0));
+
+//      find the closest center for the point
+            int center = 0;
+            for (int iCenter = 1; iCenter < C.size(); iCenter++) {
+
+                double distCurrCenter = Vectors.sqdist(C.get(iCenter), P.get(iPoint));
+                if (distCurrCenter < pointDistance) {
+                    pointDistance = distCurrCenter;
+                    center = iCenter;
+                }
+
+            }
+            weights.set(center, weights.get(center) + 1L);
+
+        }
+
+        return weights;
+    }
 }
 

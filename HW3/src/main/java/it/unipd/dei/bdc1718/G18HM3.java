@@ -84,6 +84,11 @@ public class G18HM3 {
 
   }
 
+    /***********************************/
+    /**************kCenter**************/
+    /***********************************/
+
+	/*kcenter algorithm*/
     private static ArrayList<Vector> kcenter(ArrayList<Vector> P, int k){
 
         ArrayList <Vector> centers= new ArrayList<>();
@@ -128,6 +133,9 @@ public class G18HM3 {
 
     }
 
+    /***********************************/
+    /*************kMeansPP**************/
+    /***********************************/
 
     /*
   weighted variant of the kmeans++ algorithm where, in each iteration, the probability for a non-center point
@@ -224,8 +232,12 @@ public class G18HM3 {
 
     }
 
+    /***********************************/
+    /*************kMeansObj*************/
+    /***********************************/
+
     /*
-compute the verage squared distance of a point of P from its closest center
+compute the average squared distance of a point of P from its closest center
 (i.e., the kmeans objective function for P with centers C, divided by the number of points of P)
 */
     public static double kmeansObj(ArrayList<Vector> P, ArrayList<Vector> C) {
@@ -255,6 +267,8 @@ compute the verage squared distance of a point of P from its closest center
 
     }
 
+
+    //compute the weights of the coreset, which are equal to the number of points of the corresponding cluster
     public static ArrayList<Long> computeCoresetWeights(ArrayList<Vector> P, ArrayList<Vector> C) {
 
         ArrayList<Long> weights = new ArrayList<>(Collections.nCopies(C.size(), 0L));

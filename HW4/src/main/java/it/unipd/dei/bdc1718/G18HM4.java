@@ -9,6 +9,7 @@ import org.apache.spark.mllib.linalg.Vectors;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Scanner;
 
@@ -83,6 +84,20 @@ public class G18HM4 {
     average distance between all points in pointslist
     (i.e., the sum of all pairwise distances divided by the number of distinct pairs)
      */
+
+    //The number of distinct pairs can be computed as the number of combinations C(n,k), where n is the size of pointslist
+    //and k is two.
+    long nPoints=(long) pointslist.size();
+    long distinctPairs=(nPoints-1)*(nPoints)/2l;
+    long avgDistance=0l;
+
+    for(int i=0; i<nPoints-1;i++){
+        for (int j=i+1; j<nPoints;j++){
+            avgDistance+=Vectors.sqdist(pointslist.get(i),pointslist.get(j));
+        }
+    }
+
+    return (double) avgDistance/distinctPairs;
   }
 
   /**

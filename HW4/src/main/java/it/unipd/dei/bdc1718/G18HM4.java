@@ -1,16 +1,25 @@
 package it.unipd.dei.bdc1718;
 
+import org.apache.avro.generic.GenericData;
+import org.apache.commons.net.ftp.parser.VMSVersioningFTPEntryParser;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
+import org.apache.spark.api.java.function.FlatMapFunction;
 import org.apache.spark.mllib.linalg.Vector;
 import org.apache.spark.mllib.linalg.Vectors;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+<<<<<<< HEAD
+import java.io.Reader;
+import java.util.*;
+=======
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Scanner;
+>>>>>>> 99451d891e6dba6769efd799cfaad1f2d51659fa
 
 public class G18HM4 {
 
@@ -37,6 +46,7 @@ public class G18HM4 {
     }
 
     JavaRDD<Vector> pointsrdd = sc.textFile(datafile).map(InputOutput::strToVector).repartition(numBlocks).cache();
+    pointsrdd.count();
 
     ArrayList<Vector> pointslist = runMapReduce(pointsrdd, k, numBlocks);
 
@@ -44,9 +54,15 @@ public class G18HM4 {
 
     System.out.println("The diversity measure is: "+ measure);
 
-    System.out.println("Time taken by coreset construction: " + (stopCoreset - startCoreset) + " ms");
+      try {
+          System.in.read();
+      } catch (Exception e) {
 
-    System.out.println("Time taken by the sequential algorithm for the final solution: " + (stopSeq - startSeq) + " ms" );
+      }
+
+//    System.out.println("Time taken by coreset construction: " + (stopCoreset - startCoreset) + " ms");
+//
+//    System.out.println("Time taken by the sequential algorithm for the final solution: " + (stopSeq - startSeq) + " ms" );
 
 
 
@@ -57,10 +73,42 @@ public class G18HM4 {
   public static ArrayList<Vector> runMapReduce(JavaRDD<Vector> pointsrdd, int k, int numBlocks){
 
 //  partitions pointsrdd into numBlocks
+      long startCoreset = System.currentTimeMillis();
+      JavaRDD partitions = pointsrdd.repartition(numBlocks);
 
+      JavaRDD coreset = partitions.mapPartitions(new FlatMapFunction<Iterator<Vector>, Vector>() {
+          @Override
+          public Iterator call(Iterator<Vector> VectorsOfPartition) throws Exception {
+              ArrayList<Vector> P = new ArrayList<Vector>();
+
+              while(VectorsOfPartition.hasNext()){
+                  Vector v = VectorsOfPartition.next();
+                  P.add(v);
+              }
+
+              ArrayList<Vector> points = kcenter(P, k);
+
+              return points.iterator();
+          }
+      });
+
+      ArrayList<Vector> coresetArrayList = new ArrayList<>();
+      coresetArrayList.addAll(coreset.collect());
+      long stopCoreset = System.currentTimeMillis();
+
+
+      long startSeq = System.currentTimeMillis();
+      ArrayList<Vector> maxDiversity = runSequential( coresetArrayList, k);
+      long stopSeq = System.currentTimeMillis();
+
+
+
+      System.out.println("Time taken by coreset construction: " + (stopCoreset - startCoreset) + " ms");
+
+      System.out.println("Time taken by the sequential algorithm for the final solution: " + (stopSeq - startSeq) + " ms" );
 
 //    extracts k points from each subset by running the sequential Farthest-First Traversal algorithm
-
+//      centers = kcenter(P, k);
 
 
 //    gathers the numBlocks*k points extracted into an ArrayList<Vector> coreset
@@ -68,7 +116,7 @@ public class G18HM4 {
 
 
 //    running the sequential max-diversity algorithm with input coreset and k
-    ArrayList<Vector> maxDiversity = runSequential(points, k);
+//    ArrayList<Vector> maxDiversity = runSequential(points, k);
 
 
 
@@ -78,11 +126,25 @@ public class G18HM4 {
 
 
   public static double measure(ArrayList<Vector> pointslist){
-
     /*
     average distance between all points in pointslist
     (i.e., the sum of all pairwise distances divided by the number of distinct pairs)
      */
+
+    //The number of distinct pairs can be computed as the number of combinations C(n,k), where n is the size of pointslist
+    //and k is two.
+    long nPoints=(long) pointslist.size();
+    long distinctPairs=(nPoints-1)*(nPoints)/2l;
+    long avgDistance=0l;
+
+    for(int i=0; i<nPoints-1;i++){
+        for (int j=i+1; j<nPoints;j++){
+            avgDistance+=Vectors.sqdist(pointslist.get(i),pointslist.get(j));
+        }
+    }
+
+    return (double) avgDistance/distinctPairs;
+
   }
 
   /**
@@ -106,7 +168,8 @@ public class G18HM4 {
         if (candidates[i]) {
           for (int j = i+1; j < n; j++) {
             if (candidates[j]) {
-              double d = Math.sqrt(Vectors.sqdist(points.get(i), points.get(j)))              if (d > maxDist) {
+              double d = Math.sqrt(Vectors.sqdist(points.get(i), points.get(j)));
+              if (d > maxDist) {
                 maxDist = d;
                 maxI = i;
                 maxJ = j;

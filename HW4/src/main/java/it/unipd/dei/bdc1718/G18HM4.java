@@ -11,15 +11,14 @@ import org.apache.spark.mllib.linalg.Vectors;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-<<<<<<< HEAD
 import java.io.Reader;
 import java.util.*;
-=======
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Scanner;
->>>>>>> 99451d891e6dba6769efd799cfaad1f2d51659fa
+
 
 public class G18HM4 {
 

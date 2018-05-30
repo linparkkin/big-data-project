@@ -1,0 +1,7 @@
+********** PERFORMANCES **********
+INFO -- dataset: /data/vectors-50-1000000.txt.bz2, k: 20, numBlocks: 32
+The diversity measure is: 85.59473684210526
+Time taken by coreset construction: 2181 ms
+Time taken by the sequential algorithm for the final solution: 266 ms
+Time needed to load and count the file: 62511 ms
+********** END **********

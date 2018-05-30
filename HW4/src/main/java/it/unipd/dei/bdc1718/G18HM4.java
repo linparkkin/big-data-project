@@ -46,8 +46,10 @@ public class G18HM4 {
         }
 
 //        reading and caching the input file
+        long startLoad = System.currentTimeMillis();
         JavaRDD<Vector> inputrdd = sc.textFile(datafile).map(InputOutput::strToVector).repartition(numBlocks).cache();
         inputrdd.count();
+        long endLoad = System.currentTimeMillis();
 
 //      compute k centers using a coreset of numBlocks*k points obtained with farthest first traversal on each partition
         ArrayList<Vector> pointslist = runMapReduce(inputrdd, k, numBlocks);
@@ -56,12 +58,22 @@ public class G18HM4 {
         double measure = measure(pointslist);
 
 
+
+        System.out.println("********** PERFORMANCES **********");
+
+        System.out.println("INFO -- dataset: " + datafile + ", k: " + k + ", numBlocks: " + numBlocks);
+
         System.out.println("The diversity measure is: "+ measure);
-        System.out.println("**********PERFORMANCES**********");
         System.out.println("Time taken by coreset construction: " + (endCoreset - startCoreset) + " ms");
         System.out.println("Time taken by the sequential algorithm for the final solution: " + (endSeq - startSeq) + " ms" );
-
-  }
+        System.out.println("Time needed to load and count the file: " + (endLoad - startLoad) + " ms");
+        System.out.println("********** END **********");
+//        try {
+//            System.in.read();
+//        } catch(Exception e) {
+//            e.printStackTrace();
+//        }
+    }
 
 /**
  *compute k centers using a coreset of numBlocks*k points obtained with farthest first traversal on each partition

@@ -22,7 +22,7 @@ Due Date: 31/05/2018 \hfill Davide Talon
 In the present report the times needed for the construction of the coreset, the running time of the sequential algorithm and the load time of different datasets are analyzed.
 Let $N_{exec}$ be the number of cores per executor for a total number of $N_{tot}$  cores used. The measurements evaluate the time $t_c$ which denotes the time for the construction of the coreset, $t_s$ represents the time for the run of sequential algorithm and finally $t_l$ the time needed for the loading and count of points in the dataset.
 Figure \ref{image:a} shows that the heaviest operations of the algorithm are the loading of the dataset and the construction of the coreset,  while the time needed by the sequential algorithm for the construction of the final centers is proportional to the number of partitions, this is probably due to the cost of communication among different partitions.
-Incresing the number of centers greater times are noticed  in terms of $t_c$ and $t_s$ while the time for the loading of the dataset is steady. As expected the average distance among points deacreases with the number of centers, as shown in Figure \ref{image:b}.
+Increasing the number of centers greater times are noticed  in terms of $t_c$ and $t_s$ while the time for the loading of the dataset is steady. As expected the average distance among points decreases with the number of centers, as shown in Figure \ref{image:b}.
 Different times for the same simulation settings lead us to conjecture that the load of the cluster influences the performance obtained.
 
 
@@ -120,7 +120,7 @@ Different times for the same simulation settings lead us to conjecture that the 
 
   \centering
       \includegraphics[scale=0.35]{result.jpg}
-  \caption{Results for the simulations with increasing number of centers with $N_{tot} = 32$, $N_{exec} = 4$ and $P=32$. The image on the left represents the performances in terms of times expressed in a logaritmic scale, while the one on the right shows the average distance, i.e.the sum of centers pairwise distances divided their number.}\label{image:b}
+  \caption{Results for the simulations with increasing number of centers with $N_{tot} = 32$, $N_{exec} = 4$ and $P=32$. The image on the left represents the performances in terms of times expressed in a logaritmic scale, while the one on the right shows the average distance.}\label{image:b}
 \end{figure}
 
 

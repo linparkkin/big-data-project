@@ -2,6 +2,11 @@
 \usepackage{comment} % enables the use of multi-line comments (\ifx \fi) 
 \usepackage{lipsum} %This package just generates Lorem Ipsum filler text. 
 \usepackage{fullpage} % changes the margin
+\usepackage{graphicx}
+
+\usepackage[
+singlelinecheck=false % <-- important
+]{caption}
 
 \begin{document}
 %Header-Make sure you update this information!!!!
@@ -14,18 +19,21 @@ Due Date: 31/05/2018 \hfill Davide Talon
 
 
 \section*{Test results}
-The present report shows the obtained results for the $4-th$ homework which has the goal to study the performances of a cluster in the Diversity Maximization problems. In particular the our experiment focus on the
-
-Let $N_{exec}$ be the number of cores per executor for a total number of $N_{tot}$  cores used. The measurements evaluate the time $t_c$ which denotes the time for the construction of the coreset, $t_s$ represents the time for the run of sequential algorithm and finally $t_l$ the time needed for the loading and counting of the dataset, all times are expressed in ms.
+In the present report the times needed for the construction of the coreset, the running time of the sequential algorithm and the load time of different datasets are analyzed.
+Let $N_{exec}$ be the number of cores per executor for a total number of $N_{tot}$  cores used. The measurements evaluate the time $t_c$ which denotes the time for the construction of the coreset, $t_s$ represents the time for the run of sequential algorithm and finally $t_l$ the time needed for the loading and count of points in the dataset.
+Figure \ref{image:a} shows that the heaviest operations of the algorithm are the loading of the dataset and the construction of the coreset,  while the time needed by the sequential algorithm for the construction of the final centers is proportional to the number of partitions, this is probably due to the cost of communication among different partitions.
+Incresing the number of centers greater times are noticed  in terms of $t_c$ and $t_s$ while the time for the loading of the dataset is steady. As expected the average distance among points deacreases with the number of centers, as shown in Figure \ref{image:b}.
+Different times for the same simulation settings lead us to conjecture that the load of the cluster influences the performance obtained.
 
 
 \bgroup
-\def\arraystretch{1.3}%  1 is the default, change whatever you need
+\vspace{0pt}
+\def\arraystretch{0.9}%  1 is the default, change whatever you need
 \begin{footnotesize}
 	\begin{table}[!htb]
 		\centering
 		\vspace{10pt}
-		\caption{Results with dataset \textit{all}, $P=32$, $k=20$  and increasing cores.}\label{table:a}
+		\parbox[t]{.45\linewidth}{
 		\begin{tabular}{c|c|c|c|c} 
 			\hline
 			\textbf{$N_{tot}$} & \textbf{$N_{exec}$} & \textbf{$t_c [ms]$} & \textbf{$t_s [ms]$} & \textbf{$t_l [ms]$} \\
@@ -36,25 +44,26 @@ Let $N_{exec}$ be the number of cores per executor for a total number of $N_{tot
 			8 & 8 & 23183 & 324 & 229915\\
 			16 & 4 & 22651 & 229 & 147105\\
 			16 & 8 & 22902 & 212 & 215455\\
-			32 & 4 & 3037 & 195 & 33901\\
+			32 & 4 & 14832 & 256 & 257419\\
 			32 & 8 & 24426 & 516 & 227701\\
 			64 & 4 & 19192 & 299 & 148242\\
 			64 & 8 & 22688& 188 & 206375\\
 			\hline
 		\end{tabular}
+		\caption{Results with dataset \textit{all}, $P=32$, $k=20$  and increasing cores.}\label{table:a}
+		}
 	\end{table}
 \end{footnotesize}
 \egroup
-
-
 \bgroup
-\def\arraystretch{1.3}%  1 is the default, change whatever you need
+\vspace{0pt}
+\def\arraystretch{0.9}%  1 is the default, change whatever you need
 \begin{footnotesize}
-	\begin{table}[!htb]
-		\centering
-		\vspace{10pt}
-		\caption{Results with dataset \textit{all}, $N_{tot} = 32$, $N_{exec} = 4$, $k=20$  and increasing $P$.}\label{table:b}
-		\begin{tabular}{c|c|c|c} 
+\begin{table}[!htb]	
+\parbox[t]{.45\linewidth}{
+\centering
+		\vspace{0pt}
+		\begin{tabular}[htb]{c|c|c|c} 
 			\hline
 			\textbf{$P$} & \textbf{$t_c [ms]$} & \textbf{$t_s [ms]$} & \textbf{$t_l [ms]$} \\
 			\hline
@@ -65,21 +74,16 @@ Let $N_{exec}$ be the number of cores per executor for a total number of $N_{tot
 			64 &  9715&  607& 44835\\
 			128 &  4139 & 2050 & 43149\\
 			256 & 5222 &  8189 & 38288 \\
-
-			\hline
+			\hline			
 		\end{tabular}
-	\end{table}
-\end{footnotesize}
-\egroup
-
-\bgroup
-\def\arraystretch{1.3}%  1 is the default, change whatever you need
-\begin{footnotesize}
-	\begin{table}[!htb]
-		\centering
 		\vspace{10pt}
-		\caption{Results with $N_{tot} = 32$, $N_{exec} = 4$, $k=20$, constant number of partitions $P$  and increasing size of the dataset.}\label{table:c}
-		\begin{tabular}{l|c|c|c} 
+	%\caption{Results with dataset \textit{all}, $N_{tot} = 32$, $N_{exec} = 4$, $k=20$  and increasing $P$.}\label{table:b}
+}
+		\hfill	
+\parbox[t]{.45\linewidth}{
+		\centering
+		\vspace{0pt}
+		\begin{tabular}[htb]{l|c|c|c} 
 			\hline
 			\textbf{Dataset} & \textbf{$t_c [ms]$} & \textbf{$t_s [ms]$} & \textbf{$t_l [ms]$} \\
 			\hline
@@ -88,12 +92,37 @@ Let $N_{exec}$ be the number of cores per executor for a total number of $N_{tot
 			vectors-50-2000000 &  5325&    179& 73585\\
 			vectors-50-3000000&  2486 &  232 &40012 \\
 			vectors-50-all &  3037 &  195 & 33901\\
-
 			\hline
 		\end{tabular}
+%		\vspace{10pt}
+%		\caption{Results with dataset \textit{all}, $N_{tot} = 32$, $N_{exec} = 4$, $k=20$  and increasing $P$.}\label{table:b}
+}
+\hfill
+\parbox[t]{.45\linewidth}{
+		\caption{Results with dataset \textit{all}, $N_{tot} = 32$, $N_{exec} = 4$, $k=20$  and increasing $P$.}\label{table:b}
+		}
+				\hfill	
+\parbox[t]{.45\linewidth}{
+		\caption{Results with $N_{tot} = 32$, $N_{exec} = 4$, $k=20$, constant number of partitions $P$  and increasing size of the dataset.}\label{table:c}
+			}
 	\end{table}
 \end{footnotesize}
 \egroup
+\begin{figure}
+	\vspace{0pt}
+  \centering
+      \includegraphics[scale=0.35]{grafici.png}
+  \caption{Results of the different simulations respectively with increasing cores, partitions and dataset size, times are represented in a logaritmic scale.}\label{image:a}
+
+\end{figure}
+
+\begin{figure}
+
+  \centering
+      \includegraphics[scale=0.35]{result.jpg}
+  \caption{Results for the simulations with increasing number of centers with $N_{tot} = 32$, $N_{exec} = 4$ and $P=32$. The image on the left represents the performances in terms of times expressed in a logaritmic scale, while the one on the right shows the average distance, i.e.the sum of centers pairwise distances divided their number.}\label{image:b}
+\end{figure}
+
 
 
 

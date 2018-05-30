@@ -68,11 +68,7 @@ public class G18HM4 {
         System.out.println("Time taken by the sequential algorithm for the final solution: " + (endSeq - startSeq) + " ms" );
         System.out.println("Time needed to load and count the file: " + (endLoad - startLoad) + " ms");
         System.out.println("********** END **********");
-//        try {
-//            System.in.read();
-//        } catch(Exception e) {
-//            e.printStackTrace();
-//        }
+
     }
 
 /**

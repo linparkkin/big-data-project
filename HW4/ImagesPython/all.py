@@ -28,5 +28,6 @@ plt.sca(ax[1])
 plt.xticks(b,labels);
 plt.sca(ax[2])
 plt.xticks(b,labels);
+plt.yscale('log')
 
 plt.show()
